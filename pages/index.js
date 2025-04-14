@@ -5,12 +5,57 @@ export default function TodoApp() {
   const [tasks, setTasks] = useState([]);
   // this state is for storing the input value of new task
   const [newTask, setNewTask] = useState("");
+  // this state is for the quote
+  const [quote, setQuote] = useState("Loading inspirational quote...");
 
   // load tasks from local storage when the component mounts
   useEffect(() => {
     const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
     setTasks(savedTasks);
+    fetchRandomQuote();
+
   }, []);
+
+   // func to fetch a random quote
+   const fetchRandomQuote = async () => {
+    try {
+      // Try Quotable API first
+      let response = await fetch("https://api.quotable.io/random");
+      
+      if (!response.ok) throw new Error('Primary API failed');
+      
+      const quoteData = await response.json();
+      setQuote(`${quoteData.content}\n\n— ${quoteData.author || "Unknown"}`);
+    } catch (firstError) {
+      console.warn("Primary API failed, trying backup...", firstError);
+      
+      try {
+        // this tries to pull the API quote, if theres an internal error with the API, it goes to the second choice.
+        
+        /* HEADS UP: I've tried 4 different "inspirational quote API's", and all are volatile. I added a local cache
+           just in case because they will not likely work - Steven
+        */
+        const backupResponse = await fetch("https://api.quotable.io/random");
+        const quotes = await backupResponse.json();
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        setQuote(`${randomQuote.text}\n\n— ${randomQuote.author || "Unknown"}`);
+      } catch (secondError) {
+        console.warn("Backup API failed, using hardcoded quotes", secondError);
+        
+        // here's a localized cache of quotes. If the API is broken, it uses these.
+        const localQuotes = [
+          { content: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+          { content: "Life is what happens when you're busy making other plans.", author: "John Lennon" },
+          { content: "The journey of a thousand miles begins with one step.", author: "Lao Tzu" },
+          { content: "If you can do what you do best and be happy, you are further along in life than most people.", author: "Leonardo DiCaprio" },
+          { content: "Success is falling nine times and getting up 10.", author: "Jon Bon Jovi" },
+          { content: "If you don’t like the road you’re walking, start paving another one.", author: "Dolly Parton" }
+        ];
+        const randomLocal = localQuotes[Math.floor(Math.random() * localQuotes.length)];
+        setQuote(`${randomLocal.content}\n\n— ${randomLocal.author}`);
+      }
+    }
+  };
 
   // save the tasks to local storage whenever tasks state changes
   useEffect(() => {
@@ -63,6 +108,16 @@ export default function TodoApp() {
           </li>
         ))}
       </ul>
+
+      <div className="quote">
+        {quote === "Loading inspirational quote..." ? (
+          <div>Loading quote...</div>
+        ) : (
+          quote.split('\n').map((line, i) => (
+            <div key={i}>{line}</div>
+          ))
+        )}
+      </div>
       {/* take sylings and put them in independent file later */}
       <style jsx>{`
         .container {
@@ -87,6 +142,13 @@ export default function TodoApp() {
         }
         button {
           margin-left: 10px;
+        }
+
+        .quote {
+          margin-top: 30px;
+          font-style: italic;
+          color: #fff3f2;
+          white-space: pre-line;
         }
       `}</style>
     </div>
