@@ -20,8 +20,13 @@ export default function TodoApp() {
    const fetchRandomQuote = async () => {
     try {
       // Try Quotable API first
-      let response = await fetch("https://api.quotable.io/random");
+      //let response = await fetch("https://api.quotable.io/random"); 
       
+      {/* 
+      IMPORTANT: This is the API above, im gonna try to find a stable one, but ive commented it out for now
+      because it only sometimes works
+      */}
+        
       if (!response.ok) throw new Error('Primary API failed');
       
       const quoteData = await response.json();
