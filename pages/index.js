@@ -97,7 +97,7 @@ export default function TodoApp() {
           type="text" 
           value={newTask} 
           onChange={(e) => setNewTask(e.target.value)} 
-          placeholder="add a new task" 
+          placeholder="add a new 'do' to your list!" 
         />
         {/* button to add the task to the list */}
         <button onClick={addTask}>add</button>
@@ -130,29 +130,46 @@ export default function TodoApp() {
           max-width: 400px;
           margin: auto;
           padding: 20px;
+          margin-top: 20px;
+          border: 1px solid white;
+          border-radius: 10px;
+          color:#d9e9ff;
+          background-color: #151a2b;
         }
+
         ul {
           list-style: none;
           padding: 0;
         }
+
         li {
           display: flex;
           justify-content: space-between;
           padding: 8px;
           border-bottom: 1px solid #ccc;
         }
+
         .completed {
           text-decoration: line-through;
           color: gray;
         }
+
         button {
           margin-left: 10px;
+          background-color: #151a2b;
+          border-color:rgb(54, 75, 104);
+          padding-left: 1px;
+          padding-right: 1px;
+        }
+
+        button:hover {
+        cursor: pointer;
         }
 
         .quote {
           margin-top: 30px;
           font-style: italic;
-          color: #fff3f2;
+          color: #d9e9ff;
           white-space: pre-line;
         }
       `}</style>
