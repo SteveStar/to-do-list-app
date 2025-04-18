@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 
 export default function TodoApp() {
-  // this state is for storing the list of tasks
+  // state for storing the list of tasks
   const [tasks, setTasks] = useState([]);
-  // this state is for storing the input value of new task
+  // state for storing the input value of a new task
   const [newTask, setNewTask] = useState("");
-  // this state is for the quote
-  const [quote, setQuote] = useState("Loading inspirational quote...");
-  // this state is for filtering tasks (all, completed, or incomplete)
+  // state for filtering tasks (all, completed, or incomplete)
   const [filter, setFilter] = useState("all");
+  // state for storing the quote
+  const [quote, setQuote] = useState("Loading inspirational quote...");
 
   // load tasks from local storage when the component mounts
   useEffect(() => {
@@ -20,15 +20,56 @@ export default function TodoApp() {
   // func to fetch a random quote
   const fetchRandomQuote = async () => {
     try {
-      // Try Quotable API first
       const response = await fetch("https://api.quotable.io/random");
-      if (!response.ok) throw new Error("Failed to fetch quote");
+      if (!response.ok) throw new Error("Primary API failed");
 
       const quoteData = await response.json();
       setQuote(`${quoteData.content}\n\n— ${quoteData.author || "Unknown"}`);
-    } catch {
-      // Fallback: Use hardcoded quote if API fails
-      setQuote("Keep going! Every step counts.\n\n— Hardcoded Wisdom");
+    } catch (firstError) {
+      console.warn("Primary API failed, trying backup...", firstError);
+
+      try {
+        // this tries to pull the API quote, if there's an internal error with the API, it goes to the second choice.
+        const backupResponse = await fetch("https://api.quotable.io/random");
+        const quotes = await backupResponse.json();
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        setQuote(`${randomQuote.text}\n\n— ${randomQuote.author || "Unknown"}`);
+      } catch (secondError) {
+        console.warn("Backup API failed, using hardcoded quotes", secondError);
+
+        // here's a localized cache of quotes. If the API is broken, it uses these.
+        const localQuotes = [
+          {
+            content: "The only way to do great work is to love what you do.",
+            author: "Steve Jobs",
+          },
+          {
+            content: "Life is what happens when you're busy making other plans.",
+            author: "John Lennon",
+          },
+          {
+            content: "The journey of a thousand miles begins with one step.",
+            author: "Lao Tzu",
+          },
+          {
+            content:
+              "If you can do what you do best and be happy, you are further along in life than most people.",
+            author: "Leonardo DiCaprio",
+          },
+          {
+            content: "Success is falling nine times and getting up 10.",
+            author: "Jon Bon Jovi",
+          },
+          {
+            content:
+              "If you don’t like the road you’re walking, start paving another one.",
+            author: "Dolly Parton",
+          },
+        ];
+        const randomLocal =
+          localQuotes[Math.floor(Math.random() * localQuotes.length)];
+        setQuote(`${randomLocal.content}\n\n— ${randomLocal.author}`);
+      }
     }
   };
 
@@ -75,7 +116,7 @@ export default function TodoApp() {
     <div className="container">
       <h1>To-Do List</h1>
       <div>
-        {/* the input field to enter a new task */}
+        {/* input field to enter a new task */}
         <input
           type="text"
           value={newTask}
@@ -102,9 +143,7 @@ export default function TodoApp() {
         {filteredTasks.length > 0 ? (
           filteredTasks.map((task) => (
             <li key={task.id} className={task.completed ? "completed" : ""}>
-              {/* clicking a task toggles its completion status */}
               <span onClick={() => toggleTask(task.id)}>{task.text}</span>
-              {/* button to delete the task */}
               <button onClick={() => deleteTask(task.id)}>Delete</button>
             </li>
           ))
@@ -120,7 +159,6 @@ export default function TodoApp() {
         ))}
       </div>
 
-      {/* inline styling for now; extract into CSS file later */}
       <style jsx>{`
         .container {
           text-align: center;
@@ -177,4 +215,3 @@ export default function TodoApp() {
     </div>
   );
 }
-
